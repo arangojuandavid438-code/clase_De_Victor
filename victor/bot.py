@@ -1,7 +1,7 @@
 
 import pandas as pd 
 import glob
-"""
+
 # exploracion de los datos y diferentes 
 # .csv y .xlsx
 
@@ -60,6 +60,6 @@ for i, df in enumerate (lista_informes):
         })
 
 df_consolidado = pd.concat(lista_informes, ignore_index = True)
-print(df_consolidado)"""
+print(df_consolidado)
 
 
