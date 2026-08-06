@@ -1,65 +1,129 @@
-
-import pandas as pd 
 import glob
+from pathlib import Path
 
-# exploracion de los datos y diferentes 
-# .csv y .xlsx
+import pandas as pd
 
-df_medellin = pd.read_csv("./victor/sucursal_medellin.csv")
-#print(df_medellin.head(3))
+# -----------------------------
+# CONFIGURACION GENERAL
+# -----------------------------
+CARPETA = Path(__file__).resolve().parent
+COLUMNAS_OBJETIVO = [
+    "fecha",
+    "producto",
+    "categoria",
+    "cantidad",
+    "precio_unitario",
+    "vendedor",
+    "metodo_pago",
+]
 
-print("\n")
+# -----------------------------
+# FUNCIONES DE NORMALIZACION
+# -----------------------------
+def normalizar_nombre_columna(nombre: str) -> str:
+    nombre = str(nombre).strip().lower()
+    nombre = nombre.replace(" ", "").replace("-", "").replace("/", "_")
+    nombre = "".join(car for car in nombre if car.isalnum() or car == "_")
+    return nombre
 
-df_bogota = pd.read_excel("./victor/sucursal_bogota.xlsx")
-#print(df_bogota.head(3))
 
-#print(df_bogota.columns)
+def preparar_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    df.columns = [normalizar_nombre_columna(col) for col in df.columns]
 
-print("\n")
+    renombres = {
+        "fecha_venta": "fecha",
+        "fechaventa": "fecha",
+        "producto": "producto",
+        "categoria": "categoria",
+        "cant": "cantidad",
+        "cantidad": "cantidad",
+        "valor_unitario": "precio_unitario",
+        "precio_unitario": "precio_unitario",
+        "vendedor": "vendedor",
+        "pago": "metodo_pago",
+        "metodo_de_pago": "metodo_pago",
+        "metodo_pago": "metodo_pago",
+    }
 
-#print(df_medellin.columns)
+    df = df.rename(columns=renombres)
+    df = df.loc[:, ~df.columns.duplicated()].copy()
+    df = df.reindex(columns=COLUMNAS_OBJETIVO, fill_value=pd.NA)
+    return df
 
-# agrupar archivos por tipo .csv y .xlsx
-archivos_csv = glob.glob("./victor/*.csv")
-archivos_xlsx = glob.glob("./victor/*.xlsx")
 
-print(archivos_csv)
+# -----------------------------
+# FUNCIONES DE LIMPIEZA
+# -----------------------------
+def limpiar_datos(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
 
-print("\n")
+    for columna in ["fecha", "producto", "categoria", "vendedor", "metodo_pago"]:
+        if columna in df.columns:
+            df[columna] = df[columna].astype("string").str.strip()
 
-print(archivos_xlsx)
+    if "cantidad" in df.columns:
+        df["cantidad"] = pd.to_numeric(df["cantidad"], errors="coerce").fillna(0)
 
-#unificar en una lista 
+    if "precio_unitario" in df.columns:
+        df["precio_unitario"] = pd.to_numeric(df["precio_unitario"], errors="coerce").fillna(0)
+
+    df = df.replace(r"^\s*$", pd.NA, regex=True)
+    df = df.dropna(how="all")
+
+    for columna, valor in {
+        "fecha": "No especificado",
+        "producto": "No especificado",
+        "categoria": "No especificado",
+        "vendedor": "No especificado",
+        "metodo_pago": "No especificado",
+    }.items():
+        if columna in df.columns:
+            df[columna] = df[columna].fillna(valor)
+
+    df = df.drop_duplicates()
+    return df
+
+
+# -----------------------------
+# PROCESO PRINCIPAL
+# -----------------------------
+archivos_csv = sorted(CARPETA.glob("sucursal_*.csv"))
+archivos_excel = sorted(CARPETA.glob("sucursal_*.xlsx"))
+
+print("Archivos CSV encontrados:", [archivo.name for archivo in archivos_csv])
+print("Archivos Excel encontrados:", [archivo.name for archivo in archivos_excel])
+
 lista_informes = []
 
 for archivo in archivos_csv:
     df = pd.read_csv(archivo)
+    df = preparar_dataframe(df)
     lista_informes.append(df)
-    print(f"leidos: {archivo} - {len(df)}")
-    
-print("\n")
-    
-for archivo in archivos_xlsx:
+    print(f"Leídos: {archivo.name} - {len(df)} registros cargados con éxito.")
+
+for archivo in archivos_excel:
     df = pd.read_excel(archivo)
+    df = preparar_dataframe(df)
     lista_informes.append(df)
-    print(f"leido: {archivo} - {len(df)} filas")
+    print(f"Leídos: {archivo.name} - {len(df)} registros cargados con éxito.")
 
-#unificar los dataframes
-df_consolidado = pd.concat(lista_informes, ignore_index = True)
-print(df_consolidado)
+if not lista_informes:
+    raise FileNotFoundError("No se encontraron archivos de ventas para consolidar.")
 
-#resolver renombrando columnas de bogota
+# Consolidar todos los registros en un solo DataFrame con exactamente 7 columnas
 
-for i, df in enumerate (lista_informes):
-    if 'fecha_venta' in df.columns:
-        lista_informes[i] = df.rename(colums={
-            "fecha_venta": "fecha", "producto": "producto",
-            "categoria": "categoria", "cant": "cantidad",
-            "valor_unitario": "precio_unitario",
-            "vendedor": "vendedor", "pago": "metodo_pago"            
-        })
+df_consolidado = pd.concat(lista_informes, ignore_index=True)
+df_consolidado = df_consolidado.loc[:, ~df_consolidado.columns.duplicated()].copy()
+df_consolidado = df_consolidado.reindex(columns=COLUMNAS_OBJETIVO)
 
-df_consolidado = pd.concat(lista_informes, ignore_index = True)
-print(df_consolidado)
+# Limpieza final
+filas_antes = len(df_consolidado)
+df_consolidado = limpiar_datos(df_consolidado)
+print(f"Filas antes: {filas_antes} - despues: {len(df_consolidado)}")
+print("Columnas finales:", df_consolidado.columns.tolist())
+print(df_consolidado.head())
 
-
+salida = CARPETA / "consolidado_limpio.xlsx"
+df_consolidado.to_excel(salida, index=False)
+print(f"Archivo guardado en: {salida}")
