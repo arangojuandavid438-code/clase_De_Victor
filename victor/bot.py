@@ -206,9 +206,23 @@ plt.show()
 df_consolidado['fecha_dt'] = pd.to_datetime(df_consolidado['fecha'], errors='coerce')
 df_consolidado['dia_semana'] = df_consolidado['fecha_dt'].dt.day_name()
 
+dias_español = {
+    'Monday': 'lunes',
+    'Tuesday': 'martes',
+    'Wednesday': 'miercoles',
+    'Thursday': 'jueves',
+    'Friday': ' viernes',
+    'Saturday': 'sabado',
+    'Sunday': 'domingo'
+}
+
+df_consolidado['dia_semana'] = df_consolidado['fecha_dt'].dt.day_name().map(dias_español)
+
 ventas_dia_semana = df_consolidado.groupby('dia_semana')['precio_unitario'].sum()
 ventas_dia_semana = ventas_dia_semana.sort_values(ascending=False)
 print(ventas_dia_semana)
+
+
 
 plt.figure()
 ventas_dia_semana.plot(kind='bar', title='Ventas por Día de la Semana')
