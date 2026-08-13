@@ -244,3 +244,91 @@ print("\nEstudiantes con más de 2 dispositivos:", contador)
 # ==========================
 
 mostrar_todos_los_estudiantes(lista_estudiantes)
+
+
+#!funciones especiales son __init__ y __srt__ 
+"""
+class persona: #clase
+    def __init__(self, nombre, edad, altura): # atributos
+        self.nombre = nombre
+        self.edad = edad
+        self.altura = altura
+
+    def hablar(self):
+            print("Hola parcero soy una persona ") #accion
+
+    def __str__(self):
+            return f"Nombre: {self.nombre}\n Edad: {self.edad}\n Altura: {self.altura}"
+
+class empleado (persona):
+    def __init__(self, nombre, edad, altura,trabajo,salario):
+        super().__init__(nombre, edad, altura)#los datos los saca de la clase padre la herencia 
+        self.trabajo = trabajo
+        self.salario = salario
+
+    def hablar(self):
+        print("Hola parcero soy un empleado")
+
+    def __str__(self):
+        return f" {super().__str__() }\n Trabajo: {self.trabajo} \n Salario: {self.salario}"
+
+class artista:
+    def __init__ (self, talento):
+        self.talento = talento
+        
+    def mostrar_talento(self):
+        return f"mi talento es {self.talento:}"
+
+    def __str__(self):
+                return f"estoy desde artista"
+    
+class empleadoArtista(persona, artista):
+    def __init__(self, nombre, edad, altura,talento,salario,empresa):
+         super().__init__(nombre, edad, altura)
+         artista.__init__(self, talento)
+         
+         self.salario = salario
+         self.empresa = empresa
+    
+    def hablar (self):
+        return f"hola soy {self.nombre}, {self.mostrar_talento()} y trabajo en {self.empresa}"
+    
+santiago = empleadoArtista("santiago", 26, 1.80, "cantar", "$17'000.000", "caleñas VIP")
+print(santiago.hablar())"""
+
+
+""""""
+class persona:
+    def __init__(self, nombre, edad):
+        self.nombre = nombre
+        self.edad = edad
+        
+    def __str__(self):
+        return f"  nombre:{self.nombre} \n edad:{self.edad} "
+
+class mentor:
+    def __init__ (self, exeriencia):
+        self.experiencia = exeriencia
+    def __str__(self):
+        return f"esta es mi experiencia {self.experiencia}"
+                  
+class profesor(persona):
+    def __init__(self, nombre, edad, materia):
+        super().__init__(nombre, edad)
+        self.materia = materia
+    
+    def __str__(self):
+        return f"{super().__str__()} \n materia:{self.materia}"
+    
+class estudiante(persona, mentor):
+    def __init__(self, nombre, edad, experiencia, grado):
+        super().__init__( nombre, edad)
+        mentor. __init__ (self, experiencia)
+        self.grado = grado
+    
+            
+    def hablar (self):
+     return f"hola soy {self.nombre}, y tengo esperiencia de {self.experiencia} y estoy en el grado {self.grado}"
+
+santiago = estudiante ("santiago", 20, "11 años", "10mo")
+print(santiago.hablar())
