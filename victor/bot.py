@@ -1,6 +1,5 @@
 import glob
 from pathlib import Path
-
 import pandas as pd
 
 # -----------------------------
@@ -233,3 +232,4 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 plt.savefig("grafico_dia_semana.png")
 plt.show()
+
