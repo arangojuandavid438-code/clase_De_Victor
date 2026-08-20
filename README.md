@@ -10,7 +10,7 @@ Su objetivo es ayudar a practicar conceptos básicos de Git, Python y Markdown d
 ## Cómo ejecutar el proyecto
 1. Abre tu terminal en la carpeta del proyecto.  
 2. instala las librerias de matplotlib y openpyxl
-   
+
     pip install openpyxl matplotlib
     
 3.  Ejecuta el archivo principal con:  
